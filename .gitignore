@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment variables (berisi API keys rahasia)
+.env
+
+# Build output
+dist/
+dist-ssr/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (optional - bisa di-include jika mau)
+server/uploads/qrcodes/
+
+# Local files
+*.local
