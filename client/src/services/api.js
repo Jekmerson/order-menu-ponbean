@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Auto-detect: gunakan hostname dari browser agar otomatis cocok
+// - Dari laptop (localhost:5173) → API ke localhost:5000
+// - Dari HP (192.168.x.x:5173) → API ke 192.168.x.x:5000
+const API_URL = `http://${window.location.hostname}:5000/api`;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -87,6 +90,6 @@ export const paymentAPI = {
   checkStatus: (orderId) => api.get(`/payment/status/${orderId}`),
 };
 
-export const UPLOADS_URL = import.meta.env.VITE_UPLOADS_URL || 'http://localhost:5000/uploads';
+export const UPLOADS_URL = `http://${window.location.hostname}:5000/uploads`;
 
 export default api;
