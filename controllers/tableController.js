@@ -3,7 +3,8 @@ const QRCode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
 
-const QR_DIR = path.join(__dirname, '..', 'uploads', 'qrcodes');
+const UPLOAD_BASE = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
+const QR_DIR = path.join(UPLOAD_BASE, 'qrcodes');
 
 // Ensure QR directory exists
 const ensureQRDir = () => {
@@ -67,7 +68,7 @@ const deleteTable = async (req, res) => {
     if (!table) return res.status(404).json({ message: 'Meja tidak ditemukan.' });
 
     if (table.qr_code) {
-      const qrPath = path.join(__dirname, '..', 'uploads', table.qr_code);
+      const qrPath = path.join(UPLOAD_BASE, table.qr_code);
       if (fs.existsSync(qrPath)) fs.unlinkSync(qrPath);
     }
 
@@ -102,7 +103,7 @@ const regenerateQR = async (req, res) => {
 
     // Delete old QR if exists
     if (table.qr_code) {
-      const oldPath = path.join(__dirname, '..', 'uploads', table.qr_code);
+      const oldPath = path.join(UPLOAD_BASE, table.qr_code);
       if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
     }
 
@@ -121,7 +122,7 @@ const regenerateAllQR = async (req, res) => {
 
     for (const table of tables) {
       if (table.qr_code) {
-        const oldPath = path.join(__dirname, '..', 'uploads', table.qr_code);
+        const oldPath = path.join(UPLOAD_BASE, table.qr_code);
         if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
       }
       await generateQRForTable(table);

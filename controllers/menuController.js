@@ -2,6 +2,8 @@ const { Menu, Category } = require('../models');
 const path = require('path');
 const fs = require('fs');
 
+const UPLOAD_BASE = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
+
 // Get all menus (public - for customer)
 const getAllMenus = async (req, res) => {
   try {
@@ -94,7 +96,7 @@ const updateMenu = async (req, res) => {
     if (req.file) {
       // Delete old image
       if (menu.gambar) {
-        const oldPath = path.join(__dirname, '..', 'uploads', menu.gambar);
+        const oldPath = path.join(UPLOAD_BASE, menu.gambar);
         if (fs.existsSync(oldPath)) {
           fs.unlinkSync(oldPath);
         }
@@ -124,7 +126,7 @@ const deleteMenu = async (req, res) => {
 
     // Delete image file
     if (menu.gambar) {
-      const imgPath = path.join(__dirname, '..', 'uploads', menu.gambar);
+      const imgPath = path.join(UPLOAD_BASE, menu.gambar);
       if (fs.existsSync(imgPath)) {
         fs.unlinkSync(imgPath);
       }
