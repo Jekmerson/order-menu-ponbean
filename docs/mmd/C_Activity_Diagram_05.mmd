@@ -1,0 +1,36 @@
+flowchart TD
+    Start([Start]) --> LoginKasir["Kasir Login ke Sistem"]
+    LoginKasir --> BukaDashboard["Buka Dashboard Kasir\n/kasir"]
+    BukaDashboard --> KoneksiSocket["Terhubung ke Socket.io\nMendengarkan Event"]
+    KoneksiSocket --> TampilPesanan["Tampilkan Daftar\nPesanan Aktif"]
+
+    TampilPesanan --> TungguEvent{"Menunggu Event"}
+
+    TungguEvent -->|new_order| PesananBaru["Pesanan Baru Masuk!\nTampilkan Notifikasi"]
+    PesananBaru --> TambahList["Tambahkan ke Daftar\nPesanan Masuk"]
+    TambahList --> TampilPesanan
+
+    TungguEvent -->|Kasir Pilih Pesanan| LihatDetail["Lihat Detail Pesanan\n(Meja, Item, Total)"]
+    LihatDetail --> PilihStatus{"Pilih Aksi\nStatus"}
+
+    PilihStatus -->|Proses| UpdateProcessing["Update Status:\n'paid' → 'processing'"]
+    PilihStatus -->|Selesai| UpdateCompleted["Update Status:\n'processing' → 'completed'"]
+    PilihStatus -->|Batal| UpdateCancelled["Update Status:\n→ 'cancelled'"]
+
+    UpdateProcessing --> KirimUpdate["PATCH /api/orders/:id/status"]
+    UpdateCompleted --> KirimUpdate
+    UpdateCancelled --> KirimUpdate
+
+    KirimUpdate --> EmitSocket["Server Emit\n'order_updated'"]
+    EmitSocket --> UpdateUI["Update Tampilan\nDashboard Kasir"]
+    UpdateUI --> NotifPelanggan["Pelanggan Mendapat\nUpdate Real-time"]
+    NotifPelanggan --> TampilPesanan
+
+    TungguEvent -->|Cetak Struk| CetakStruk["Generate Format Struk\n80mm Thermal"]
+    CetakStruk --> PrintStruk["Kirim ke Printer"]
+    PrintStruk --> TampilPesanan
+
+    TungguEvent -->|Lihat Riwayat| BukaHistory["Buka Halaman\n/kasir/history"]
+    BukaHistory --> FilterHistory["Filter Berdasarkan\nStatus / Tanggal"]
+    FilterHistory --> TampilHistory["Tampilkan Riwayat\nPesanan"]
+    TampilHistory --> TampilPesanan

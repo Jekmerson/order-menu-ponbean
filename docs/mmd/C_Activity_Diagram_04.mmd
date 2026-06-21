@@ -1,0 +1,42 @@
+flowchart TD
+    Start([Start]) --> BukaMeja["Admin Membuka\nHalaman Table Management"]
+    BukaMeja --> LoadTable["Sistem Memuat\nDaftar Meja"]
+    LoadTable --> TampilMeja["Tampilkan Daftar Meja\n+ QR Code"]
+
+    TampilMeja --> PilihAksi{"Pilih Aksi"}
+
+    PilihAksi -->|Tambah Meja| InputNomor["Input Nomor Meja"]
+    PilihAksi -->|Hapus Meja| KonfirmasiHapus["Konfirmasi\nPenghapusan"]
+    PilihAksi -->|Toggle Status| ToggleAktif["Toggle is_active\n(Aktif/Nonaktif)"]
+    PilihAksi -->|Regenerate QR| RegenSatu["Regenerate QR\nMeja Tertentu"]
+    PilihAksi -->|Regenerate All| RegenSemua["Regenerate QR\nSemua Meja"]
+
+    InputNomor --> CekDuplikat{"Nomor Meja\nSudah Ada?"}
+    CekDuplikat -->|Ya| ErrorDuplikat["Tampilkan Error:\nNomor Meja Sudah Ada"]
+    ErrorDuplikat --> InputNomor
+    CekDuplikat -->|Tidak| SimpanMeja["Simpan Meja ke DB"]
+    SimpanMeja --> GenQR["Generate QR Code PNG\nURL: /menu/{table_id}"]
+    GenQR --> SimpanQR["Simpan File QR ke\nuploads/qrcodes/"]
+    SimpanQR --> Notifikasi
+
+    KonfirmasiHapus --> KonfirmasiYa{"Konfirmasi?"}
+    KonfirmasiYa -->|Tidak| TampilMeja
+    KonfirmasiYa -->|Ya| HapusQRFile["Hapus File QR Code"]
+    HapusQRFile --> HapusMeja["Hapus Meja dari DB"]
+    HapusMeja --> Notifikasi
+
+    ToggleAktif --> UpdateStatus["Update is_active\n(true ↔ false)"]
+    UpdateStatus --> Notifikasi
+
+    RegenSatu --> HapusQRLama["Hapus File QR Lama"]
+    HapusQRLama --> GenQRBaru["Generate QR Code Baru"]
+    GenQRBaru --> Notifikasi
+
+    RegenSemua --> LoopMeja["Loop Semua Meja"]
+    LoopMeja --> HapusQRSemua["Hapus Semua QR Lama"]
+    HapusQRSemua --> GenQRSemua["Generate QR Baru\nUntuk Semua Meja"]
+    GenQRSemua --> Notifikasi
+
+    Notifikasi["Tampilkan Notifikasi\nSukses"]
+    Notifikasi --> RefreshList["Refresh Daftar Meja"]
+    RefreshList --> TampilMeja

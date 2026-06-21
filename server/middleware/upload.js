@@ -2,10 +2,17 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Pastikan folder uploads ada
-const uploadDir = path.join(__dirname, '..', 'uploads');
+// Production (Railway Volume): gunakan UPLOAD_DIR env var
+// Development: gunakan folder uploads/ relatif ke server directory
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
+
+// Pastikan folder uploads ada (termasuk subfolder qrcodes)
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
+}
+const qrDir = path.join(uploadDir, 'qrcodes');
+if (!fs.existsSync(qrDir)) {
+  fs.mkdirSync(qrDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({

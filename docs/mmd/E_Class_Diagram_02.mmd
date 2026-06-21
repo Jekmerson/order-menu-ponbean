@@ -1,0 +1,84 @@
+classDiagram
+    direction TB
+
+    class AuthController {
+        +login(req, res) Response
+        +getProfile(req, res) Response
+        +getUsers(req, res) Response
+        +createUser(req, res) Response
+        +deleteUser(req, res) Response
+    }
+
+    class MenuController {
+        +getAllMenus(req, res) Response
+        +getMenuById(req, res) Response
+        +createMenu(req, res) Response
+        +updateMenu(req, res) Response
+        +deleteMenu(req, res) Response
+        +toggleAvailability(req, res) Response
+        +getAllCategories(req, res) Response
+        +createCategory(req, res) Response
+        +updateCategory(req, res) Response
+        +deleteCategory(req, res) Response
+    }
+
+    class OrderController {
+        -generateOrderNumber() String
+        +createOrder(req, res) Response
+        +getAllOrders(req, res) Response
+        +getOrderById(req, res) Response
+        +updateOrderStatus(req, res) Response
+    }
+
+    class PaymentController {
+        +createPayment(req, res) Response
+        +handleNotification(req, res) Response
+        +checkPaymentStatus(req, res) Response
+    }
+
+    class TableController {
+        -generateQRForTable(table) Object
+        -ensureQRDir() void
+        +getAllTables(req, res) Response
+        +createTable(req, res) Response
+        +deleteTable(req, res) Response
+        +toggleTableStatus(req, res) Response
+        +regenerateQR(req, res) Response
+        +regenerateAllQR(req, res) Response
+        +getQRDataUrl(req, res) Response
+        +getQRPrintCard(req, res) Response
+    }
+
+    class ReportController {
+        +getReport(req, res) Response
+    }
+
+    class AuthMiddleware {
+        +auth(req, res, next) void
+        +adminOnly(req, res, next) void
+    }
+
+    class UploadMiddleware {
+        -storage: MulterDiskStorage
+        -fileFilter(req, file, cb) void
+        +upload: MulterInstance
+    }
+
+    AuthController ..> User : uses
+    MenuController ..> Menu : uses
+    MenuController ..> Category : uses
+    OrderController ..> Order : uses
+    OrderController ..> OrderItem : uses
+    OrderController ..> Menu : uses
+    OrderController ..> Table : uses
+    PaymentController ..> Order : uses
+    TableController ..> Table : uses
+    ReportController ..> Order : uses
+    ReportController ..> OrderItem : uses
+
+    AuthMiddleware <.. AuthController : protected by
+    AuthMiddleware <.. MenuController : protected by
+    AuthMiddleware <.. OrderController : protected by
+    AuthMiddleware <.. TableController : protected by
+    AuthMiddleware <.. ReportController : protected by
+    UploadMiddleware <.. MenuController : uses

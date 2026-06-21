@@ -1,0 +1,85 @@
+classDiagram
+    direction TB
+
+    class User {
+        +Integer id [PK, AUTO_INCREMENT]
+        +String nama [VARCHAR(100), NOT NULL]
+        +String username [VARCHAR(50), NOT NULL, UNIQUE]
+        +String password [VARCHAR(255), NOT NULL]
+        +Enum role ['admin', 'kasir', DEFAULT: 'kasir']
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class Category {
+        +Integer id [PK, AUTO_INCREMENT]
+        +String nama [VARCHAR(100), NOT NULL]
+        +String icon [VARCHAR(50), DEFAULT: '🍽️']
+        +DateTime created_at
+        +DateTime updated_at
+        --
+        +hasMany(Menu)
+    }
+
+    class Menu {
+        +Integer id [PK, AUTO_INCREMENT]
+        +Integer category_id [FK → categories.id, NOT NULL]
+        +String nama [VARCHAR(150), NOT NULL]
+        +Text deskripsi [NULLABLE]
+        +Decimal harga [DECIMAL(10,0), NOT NULL]
+        +String gambar [VARCHAR(255), NULLABLE]
+        +Boolean is_available [DEFAULT: true]
+        +DateTime created_at
+        +DateTime updated_at
+        --
+        +belongsTo(Category)
+        +hasMany(OrderItem)
+    }
+
+    class Table {
+        +Integer id [PK, AUTO_INCREMENT]
+        +Integer nomor_meja [NOT NULL, UNIQUE]
+        +String qr_code [VARCHAR(255), NULLABLE]
+        +Boolean is_active [DEFAULT: true]
+        +DateTime created_at
+        +DateTime updated_at
+        --
+        +hasMany(Order)
+    }
+
+    class Order {
+        +Integer id [PK, AUTO_INCREMENT]
+        +String order_number [VARCHAR(30), NOT NULL, UNIQUE]
+        +Integer table_id [FK → tables.id, NOT NULL]
+        +String customer_name [VARCHAR(100), NULLABLE]
+        +Enum status ['pending_payment','paid','processing','completed','cancelled']
+        +String payment_method [VARCHAR(50), NULLABLE]
+        +String payment_id [VARCHAR(100), NULLABLE]
+        +Decimal total_amount [DECIMAL(12,0), NOT NULL, DEFAULT: 0]
+        +Text note [NULLABLE]
+        +DateTime created_at
+        +DateTime updated_at
+        --
+        +belongsTo(Table)
+        +hasMany(OrderItem)
+    }
+
+    class OrderItem {
+        +Integer id [PK, AUTO_INCREMENT]
+        +Integer order_id [FK → orders.id, NOT NULL]
+        +Integer menu_id [FK → menus.id, NOT NULL]
+        +Integer quantity [NOT NULL, DEFAULT: 1]
+        +Decimal price [DECIMAL(10,0), NOT NULL]
+        +Decimal subtotal [DECIMAL(12,0), NOT NULL]
+        +Text note [NULLABLE]
+        +DateTime created_at
+        +DateTime updated_at
+        --
+        +belongsTo(Order)
+        +belongsTo(Menu)
+    }
+
+    Category "1" --> "0..*" Menu : has many
+    Table "1" --> "0..*" Order : has many
+    Order "1" --> "1..*" OrderItem : has many
+    Menu "1" --> "0..*" OrderItem : has many

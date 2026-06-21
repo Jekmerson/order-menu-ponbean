@@ -1,0 +1,56 @@
+sequenceDiagram
+    actor P as Pelanggan
+    participant BP as Browser Pelanggan
+    participant S as Server (Express)
+    participant SK as Socket.io
+    participant BK as Browser Kasir
+    actor K as Kasir
+    participant DB as MySQL Database
+
+    Note over P,DB: Kasir menerima pesanan baru real-time
+
+    K->>BK: Login & buka /kasir
+    BK->>SK: Connect to Socket.io
+    SK-->>BK: Connected
+
+    P->>BP: Buat pesanan (UC-05)
+    BP->>S: POST /api/orders {...}
+    S->>DB: INSERT order + items
+    S->>SK: emit("new_order", orderData)
+    SK->>BK: Event "new_order"
+    BK-->>K: Notifikasi: Pesanan baru masuk!
+    BK->>BK: Tambahkan ke daftar pesanan
+
+    S-->>BP: Response {order}
+
+    Note over P,DB: Kasir memproses pesanan
+
+    K->>BK: Pilih pesanan & tekan "Proses"
+    BK->>S: PATCH /api/orders/{id}/status {status: "processing"}
+
+    S->>S: Middleware auth: verify JWT
+    S->>DB: SELECT * FROM orders WHERE id = ?
+    S->>DB: UPDATE orders SET status = "processing"
+    S->>DB: SELECT order WITH relations
+    DB-->>S: Updated order
+
+    S->>SK: emit("order_updated", updatedOrder)
+    SK->>BK: Event "order_updated"
+    SK->>BP: Event "order_updated"
+
+    BK-->>K: Update status di dashboard
+    BP-->>P: Update status di halaman tracking
+
+    S-->>BK: Response {order: updatedOrder}
+
+    Note over P,DB: Kasir menyelesaikan pesanan
+
+    K->>BK: Tekan "Selesai"
+    BK->>S: PATCH /api/orders/{id}/status {status: "completed"}
+
+    S->>DB: UPDATE orders SET status = "completed"
+    S->>SK: emit("order_updated", updatedOrder)
+    SK->>BP: Event "order_updated"
+    BP-->>P: Status: Pesanan Selesai ✅
+
+    S-->>BK: Response success

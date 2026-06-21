@@ -1,0 +1,69 @@
+graph TB
+    subgraph "<<device>> Smartphone Pelanggan"
+        subgraph "<<execution environment>> Web Browser"
+            subgraph "<<artifact>> React Client App"
+                A1["MenuPage.jsx"]
+                A2["OrderStatusPage.jsx"]
+                A3["CartDrawer.jsx"]
+                A4["Socket.io Client"]
+            end
+        end
+    end
+
+    subgraph "<<device>> PC Admin/Kasir"
+        subgraph "<<execution environment>> Web Browser "
+            subgraph "<<artifact>> React Admin/Kasir App"
+                B1["AdminDashboard.jsx"]
+                B2["KasirDashboard.jsx"]
+                B3["MenuManagement.jsx"]
+                B4["Socket.io Client "]
+            end
+        end
+        subgraph "<<device>> Printer Thermal 80mm"
+            PR["Print Service"]
+        end
+    end
+
+    subgraph "<<device>> Server Host"
+        subgraph "<<execution environment>> Node.js v18+"
+            subgraph "<<artifact>> Express.js Application"
+                C1["REST API Endpoints"]
+                C2["Socket.io Server"]
+                C3["Midtrans SDK"]
+                C4["Multer Upload"]
+                C5["QRCode Generator"]
+                C6["JWT Auth"]
+            end
+            subgraph "<<artifact>> Sequelize ORM"
+                C7["Model Definitions"]
+                C8["Associations"]
+            end
+        end
+        subgraph "<<execution environment>> MySQL Server"
+            D1["Database: ponbean_db"]
+        end
+        subgraph "<<artifact>> File Storage"
+            E1["/uploads/ (images)"]
+            E2["/uploads/qrcodes/ (QR)"]
+        end
+    end
+
+    subgraph "<<device>> Midtrans Cloud"
+        subgraph "<<execution environment>> Payment Service"
+            F1["Snap API"]
+            F2["Core API"]
+            F3["Webhook Service"]
+        end
+    end
+
+    A1 -->|"HTTP/WS"| C1
+    A4 -->|"WebSocket"| C2
+    B2 -->|"HTTP/WS"| C1
+    B4 -->|"WebSocket"| C2
+    B2 -->|"Print"| PR
+    C7 -->|"TCP:3306"| D1
+    C4 -->|"Write"| E1
+    C5 -->|"Write"| E2
+    C3 -->|"HTTPS"| F1
+    C3 -->|"HTTPS"| F2
+    F3 -->|"POST"| C1

@@ -1,0 +1,113 @@
+classDiagram
+    direction TB
+
+    class App {
+        +render() JSX
+    }
+
+    class AdminLayout {
+        +render() JSX [Outlet]
+    }
+
+    class KasirLayout {
+        +render() JSX [Outlet]
+    }
+
+    class Sidebar {
+        +links: Array
+        +render() JSX
+    }
+
+    class CartDrawer {
+        +isOpen: Boolean
+        +onClose: Function
+        +render() JSX
+    }
+
+    class Login {
+        -username: State
+        -password: State
+        +handleLogin() void
+        +render() JSX
+    }
+
+    class MenuPage {
+        -menus: State
+        -categories: State
+        -selectedCategory: State
+        +render() JSX
+    }
+
+    class OrderStatusPage {
+        -order: State
+        +render() JSX
+    }
+
+    class AdminDashboard {
+        -stats: State
+        +render() JSX
+    }
+
+    class MenuManagement {
+        -menus: State
+        -categories: State
+        +handleCreate() void
+        +handleUpdate() void
+        +handleDelete() void
+        +handleToggle() void
+        +render() JSX
+    }
+
+    class TableManagement {
+        -tables: State
+        +handleCreate() void
+        +handleDelete() void
+        +handleToggle() void
+        +handleRegenerateQR() void
+        +render() JSX
+    }
+
+    class UserManagement {
+        -users: State
+        +handleCreate() void
+        +handleDelete() void
+        +render() JSX
+    }
+
+    class LaporanPenjualan {
+        -reportData: State
+        -dateRange: State
+        +fetchReport() void
+        +render() JSX
+    }
+
+    class KasirDashboard {
+        -orders: State
+        -socket: SocketIO
+        +handleUpdateStatus() void
+        +render() JSX
+    }
+
+    class KasirHistory {
+        -orders: State
+        +render() JSX
+    }
+
+    App --> AdminLayout
+    App --> KasirLayout
+    App --> Login
+    App --> MenuPage
+    App --> OrderStatusPage
+
+    AdminLayout --> Sidebar
+    AdminLayout --> AdminDashboard
+    AdminLayout --> MenuManagement
+    AdminLayout --> TableManagement
+    AdminLayout --> UserManagement
+    AdminLayout --> LaporanPenjualan
+
+    KasirLayout --> Sidebar
+    KasirLayout --> KasirDashboard
+    KasirLayout --> KasirHistory
+
+    MenuPage --> CartDrawer

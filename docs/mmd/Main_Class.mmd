@@ -1,0 +1,72 @@
+classDiagram
+    direction TB
+
+    class User {
+        +Integer id PK
+        +String nama
+        +String username
+        +String password
+        +Enum role [admin, kasir]
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class Category {
+        +Integer id PK
+        +String nama
+        +String icon
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class Menu {
+        +Integer id PK
+        +Integer category_id FK
+        +String nama
+        +Text deskripsi
+        +Decimal harga
+        +String gambar
+        +Boolean is_available
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class Table {
+        +Integer id PK
+        +Integer nomor_meja
+        +String qr_code
+        +Boolean is_active
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class Order {
+        +Integer id PK
+        +String order_number
+        +Integer table_id FK
+        +String customer_name
+        +Enum status
+        +String payment_method
+        +String payment_id
+        +Decimal total_amount
+        +Text note
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class OrderItem {
+        +Integer id PK
+        +Integer order_id FK
+        +Integer menu_id FK
+        +Integer quantity
+        +Decimal price
+        +Decimal subtotal
+        +Text note
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    Category "1" --> "0..*" Menu : has many
+    Table "1" --> "0..*" Order : has many
+    Order "1" --> "1..*" OrderItem : has many
+    Menu "1" --> "0..*" OrderItem : has many

@@ -1,0 +1,60 @@
+graph TB
+    subgraph "Sistem Pemesanan Menu Ponbean Coffee"
+        UC1["UC-01: Scan QR Code"]
+        UC2["UC-02: Lihat Menu"]
+        UC3["UC-03: Tambah ke Keranjang"]
+        UC4["UC-04: Kelola Keranjang"]
+        UC5["UC-05: Buat Pesanan"]
+        UC6["UC-06: Bayar Pesanan"]
+        UC7["UC-07: Tracking Pesanan"]
+        UC8["UC-08: Login"]
+        UC9["UC-09: Kelola Menu"]
+        UC10["UC-10: Kelola Kategori"]
+        UC11["UC-11: Kelola Meja"]
+        UC12["UC-12: Kelola User"]
+        UC13["UC-13: Lihat Dashboard"]
+        UC14["UC-14: Lihat Laporan Penjualan"]
+        UC15["UC-15: Terima Pesanan"]
+        UC16["UC-16: Update Status Pesanan"]
+        UC17["UC-17: Lihat Riwayat Pesanan"]
+        UC18["UC-18: Cetak Struk"]
+        UC19["UC-19: Logout"]
+        UC20["UC-20: Generate QR Code"]
+    end
+
+    Pelanggan(("Pelanggan"))
+    Admin(("Admin"))
+    Kasir(("Kasir"))
+    Midtrans(("Midtrans\n(Payment Gateway)"))
+
+    Pelanggan --> UC1
+    Pelanggan --> UC2
+    Pelanggan --> UC3
+    Pelanggan --> UC4
+    Pelanggan --> UC5
+    Pelanggan --> UC6
+    Pelanggan --> UC7
+
+    Admin --> UC8
+    Admin --> UC9
+    Admin --> UC10
+    Admin --> UC11
+    Admin --> UC12
+    Admin --> UC13
+    Admin --> UC14
+    Admin --> UC19
+    Admin --> UC20
+
+    Kasir --> UC8
+    Kasir --> UC15
+    Kasir --> UC16
+    Kasir --> UC17
+    Kasir --> UC18
+    Kasir --> UC19
+
+    UC6 --> Midtrans
+    Midtrans --> UC16
+
+    UC5 -.->|include| UC3
+    UC6 -.->|include| UC5
+    UC11 -.->|include| UC20

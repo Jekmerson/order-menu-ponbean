@@ -1,0 +1,48 @@
+sequenceDiagram
+    actor A as Admin
+    participant B as Browser (React)
+    participant S as Server (Express)
+    participant QR as QRCode Library
+    participant FS as File System
+    participant DB as MySQL Database
+
+    Note over A,DB: Tambah Meja Baru + Auto Generate QR
+
+    A->>B: Input nomor meja & tekan "Tambah"
+    B->>S: POST /api/tables {nomor_meja}
+
+    S->>S: Middleware auth & adminOnly
+    S->>DB: SELECT * FROM tables WHERE nomor_meja = ?
+    DB-->>S: null (tidak duplikat)
+
+    S->>DB: INSERT INTO tables (nomor_meja)
+    DB-->>S: Table created (ID)
+
+    S->>S: Build URL: {CLIENT_URL}/menu/{table.id}
+    S->>QR: QRCode.toFile(path, url, options)
+    QR->>FS: Simpan qr-meja-{nomor}.png ke uploads/qrcodes/
+    S->>DB: UPDATE tables SET qr_code = "qrcodes/qr-meja-{nomor}.png"
+    DB-->>S: Updated
+
+    S-->>B: Response 201 {table, menu_url}
+    B-->>A: Tampilkan meja baru + QR Code
+
+    Note over A,DB: Regenerate QR Code
+
+    A->>B: Klik "Regenerate QR" pada meja
+    B->>S: POST /api/tables/{id}/regenerate-qr
+
+    S->>DB: SELECT * FROM tables WHERE id = ?
+    DB-->>S: Table data
+
+    opt QR lama ada
+        S->>FS: Hapus file QR lama
+    end
+
+    S->>S: Build URL: {CLIENT_URL}/menu/{table.id}
+    S->>QR: QRCode.toFile(newPath, url, options)
+    QR->>FS: Simpan QR baru
+    S->>DB: UPDATE tables SET qr_code = newQrPath
+
+    S-->>B: Response {table, menu_url}
+    B-->>A: Tampilkan QR Code baru

@@ -1,0 +1,41 @@
+flowchart TD
+    Start([Start]) --> BukaMenu["Admin Membuka\nHalaman Menu Management"]
+    BukaMenu --> LoadMenuList["Sistem Memuat\nDaftar Menu & Kategori"]
+    LoadMenuList --> TampilMenu["Tampilkan Daftar Menu"]
+
+    TampilMenu --> PilihAksi{"Pilih Aksi"}
+
+    PilihAksi -->|Tambah| FormTambah["Buka Form\nTambah Menu"]
+    PilihAksi -->|Edit| FormEdit["Buka Form Edit\n(Data Terisi)"]
+    PilihAksi -->|Hapus| KonfirmasiHapus["Konfirmasi\nPenghapusan"]
+    PilihAksi -->|Toggle| ToggleStatus["Toggle\nis_available"]
+
+    FormTambah --> IsiForm["Isi Nama, Kategori,\nHarga, Deskripsi"]
+    FormEdit --> IsiForm
+    IsiForm --> UploadGambar["Upload Gambar\n(Opsional)"]
+    UploadGambar --> ValidasiForm{"Data\nValid?"}
+
+    ValidasiForm -->|Tidak| ErrorForm["Tampilkan Error\nValidasi"]
+    ErrorForm --> IsiForm
+
+    ValidasiForm -->|Ya| SimpanDB["Simpan ke Database\n(POST/PUT /api/menus)"]
+    SimpanDB --> SimpanFile{"Ada File\nGambar?"}
+    SimpanFile -->|Ya| ProsesFIle["Simpan File ke\n/uploads"]
+    SimpanFile -->|Tidak| Notifikasi
+
+    ProsesFIle --> GambarLama{"Ada Gambar\nLama?"}
+    GambarLama -->|Ya| HapusLama["Hapus File\nGambar Lama"]
+    GambarLama -->|Tidak| Notifikasi
+    HapusLama --> Notifikasi
+
+    KonfirmasiHapus --> KonfirmasiYa{"Konfirmasi?"}
+    KonfirmasiYa -->|Tidak| TampilMenu
+    KonfirmasiYa -->|Ya| HapusMenu["Hapus Menu dari Database\n& Hapus File Gambar"]
+    HapusMenu --> Notifikasi
+
+    ToggleStatus --> UpdateToggle["Update is_available\n(true ↔ false)"]
+    UpdateToggle --> Notifikasi
+
+    Notifikasi["Tampilkan Notifikasi\nSukses"]
+    Notifikasi --> RefreshList["Refresh Daftar Menu"]
+    RefreshList --> TampilMenu

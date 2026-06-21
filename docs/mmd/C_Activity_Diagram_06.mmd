@@ -1,0 +1,39 @@
+flowchart TD
+    Start([Start]) --> PesananDibuat["Pesanan Dibuat\nStatus: pending_payment"]
+    PesananDibuat --> RequestSnap["Client Request Snap Token\nPOST /api/payment/create"]
+
+    RequestSnap --> BuildParam["Server Bangun Parameter:\ntransaction_details,\nitem_details,\ncustomer_details"]
+    BuildParam --> CallMidtrans["Server Panggil\nMidtrans Snap API\nsnap.createTransaction()"]
+    CallMidtrans --> DapatToken["Terima snap_token\n& redirect_url"]
+    DapatToken --> SimpanToken["Simpan snap_token\nke Order.payment_id"]
+
+    SimpanToken --> TampilSnap["Tampilkan Popup\nMidtrans Snap\ndi Browser Pelanggan"]
+    TampilSnap --> MetodeBayar["Pelanggan Pilih\nMetode Pembayaran"]
+
+    MetodeBayar --> QRIS["QRIS"]
+    MetodeBayar --> VA["Virtual Account\n(Bank Transfer)"]
+    MetodeBayar --> EWallet["E-Wallet\n(GoPay, ShopeePay)"]
+    MetodeBayar --> CC["Kartu Kredit /\nDebit"]
+
+    QRIS --> ProsesBayar["Proses Pembayaran\ndi Pihak Ketiga"]
+    VA --> ProsesBayar
+    EWallet --> ProsesBayar
+    CC --> ProsesBayar
+
+    ProsesBayar --> Webhook["Midtrans Kirim\nPOST /api/payment/notification"]
+
+    Webhook --> VerifyNotif["Server Verifikasi\nNotifikasi via Core API"]
+    VerifyNotif --> CekStatus{"Transaction\nStatus?"}
+
+    CekStatus -->|"settlement / capture\n(fraud_status: accept)"| StatusPaid["Update Order:\nstatus = 'paid'"]
+    CekStatus -->|"deny / cancel / expire"| StatusCancelled["Update Order:\nstatus = 'cancelled'"]
+    CekStatus -->|"pending"| StatusPending["Status Tetap:\npending_payment"]
+
+    StatusPaid --> EmitSocket["Emit Socket.io\n'order_updated'"]
+    StatusCancelled --> EmitSocket
+    StatusPending --> End([End])
+
+    EmitSocket --> UpdateKasir["Dashboard Kasir\nDiperbarui Real-time"]
+    EmitSocket --> UpdatePelanggan["Halaman Tracking\nPelanggan Diperbarui"]
+    UpdateKasir --> End
+    UpdatePelanggan --> End

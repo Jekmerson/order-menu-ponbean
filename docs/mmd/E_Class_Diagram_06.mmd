@@ -1,0 +1,55 @@
+classDiagram
+    direction TB
+
+    class SequelizeConfig {
+        +host: String
+        +port: Number
+        +username: String
+        +password: String
+        +database: String
+        +dialect: "mysql"
+        +authenticate() Promise
+        +sync(options) Promise
+    }
+
+    class MidtransConfig {
+        +isProduction: Boolean
+        +serverKey: String
+        +clientKey: String
+    }
+
+    class MidtransSnap {
+        +createTransaction(parameter) Promise
+    }
+
+    class MidtransCoreApi {
+        +transaction: TransactionAPI
+    }
+
+    class TransactionAPI {
+        +notification(body) Promise
+        +status(orderId) Promise
+    }
+
+    class SocketIOServer {
+        +on(event, callback) void
+        +emit(event, data) void
+    }
+
+    class ExpressApp {
+        +use(middleware) void
+        +set(key, value) void
+        +get(path, handler) void
+        +post(path, handler) void
+        +put(path, handler) void
+        +patch(path, handler) void
+        +delete(path, handler) void
+        +listen(port) void
+    }
+
+    MidtransConfig <|-- MidtransSnap
+    MidtransConfig <|-- MidtransCoreApi
+    MidtransCoreApi --> TransactionAPI
+    ExpressApp --> SequelizeConfig : uses
+    ExpressApp --> SocketIOServer : uses
+    ExpressApp --> MidtransSnap : uses

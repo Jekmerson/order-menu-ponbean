@@ -1,0 +1,43 @@
+sequenceDiagram
+    actor A as Admin
+    participant B as Browser (React)
+    participant S as Server (Express)
+    participant DB as MySQL Database
+
+    A->>B: Buka halaman User Management
+    B->>S: GET /api/auth/users
+    S->>S: Middleware auth & adminOnly
+    S->>DB: SELECT * FROM users (exclude password)
+    DB-->>S: Daftar users
+    S-->>B: Response users[]
+    B-->>A: Tampilkan daftar user
+
+    Note over A,DB: Tambah User Baru
+
+    A->>B: Isi form & tekan "Simpan"
+    B->>S: POST /api/auth/users {nama, username, password, role}
+
+    S->>DB: SELECT * FROM users WHERE username = ?
+    DB-->>S: null (username tersedia)
+
+    S->>S: hashedPassword = bcrypt.hash(password, 10)
+    S->>DB: INSERT INTO users (nama, username, password, role)
+    DB-->>S: User created
+
+    S-->>B: Response 201 {user: {id, nama, username, role}}
+    B-->>A: Tampilkan notifikasi & refresh list
+
+    Note over A,DB: Hapus User
+
+    A->>B: Klik "Hapus" pada user
+    B->>S: DELETE /api/auth/users/{id}
+
+    alt id = current admin id
+        S-->>B: Response 400 "Tidak bisa menghapus akun sendiri"
+        B-->>A: Tampilkan error
+    else id ≠ current admin id
+        S->>DB: SELECT * FROM users WHERE id = ?
+        S->>DB: DELETE FROM users WHERE id = ?
+        S-->>B: Response {message: "User berhasil dihapus"}
+        B-->>A: Refresh daftar user
+    end

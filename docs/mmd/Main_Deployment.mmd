@@ -1,0 +1,80 @@
+graph TB
+    subgraph "Client Layer"
+        subgraph "Smartphone Pelanggan"
+            QR["Scan QR Code"]
+            BROWSER_P["Web Browser"]
+        end
+        subgraph "PC Admin / Kasir"
+            BROWSER_AK["Web Browser"]
+            PRINTER["Printer Thermal 80mm"]
+        end
+        subgraph "React Frontend - Vite :5173"
+            REACT["React 19 + React Router v7"]
+            CONTEXT["Context API - Auth & Cart"]
+            SOCKET_C["Socket.io Client"]
+            API_SERVICE["Axios HTTP Client"]
+        end
+    end
+
+    subgraph "Server Layer - Express.js :5000"
+        subgraph "Middleware"
+            CORS_MW["CORS"]
+            AUTH_MW["JWT Auth"]
+            UPLOAD_MW["Multer Upload"]
+        end
+        subgraph "REST API Controllers"
+            AUTH_C["Auth Controller"]
+            MENU_C["Menu Controller"]
+            ORDER_C["Order Controller"]
+            PAY_C["Payment Controller"]
+            TABLE_C["Table Controller"]
+            REPORT_C["Report Controller"]
+        end
+        SOCKET_S["Socket.io Server"]
+        ORM["Sequelize ORM"]
+    end
+
+    subgraph "Data Layer"
+        MYSQL[("MySQL Database\nponbean_db")]
+        FILES["File Storage\n/uploads/"]
+        QR_FILES["QR Code Files\n/uploads/qrcodes/"]
+    end
+
+    subgraph "External Service"
+        MIDTRANS["Midtrans Payment Gateway\nSnap API + Core API + Webhook"]
+    end
+
+    QR --> BROWSER_P
+    BROWSER_P --> REACT
+    BROWSER_AK --> REACT
+    REACT --> CONTEXT
+    REACT --> SOCKET_C
+    REACT --> API_SERVICE
+    BROWSER_AK --> PRINTER
+
+    API_SERVICE -->|"HTTP REST"| CORS_MW
+    SOCKET_C -->|"WebSocket"| SOCKET_S
+    CORS_MW --> AUTH_MW
+    CORS_MW --> UPLOAD_MW
+    AUTH_MW --> AUTH_C
+    AUTH_MW --> MENU_C
+    AUTH_MW --> ORDER_C
+    AUTH_MW --> PAY_C
+    AUTH_MW --> TABLE_C
+    AUTH_MW --> REPORT_C
+    UPLOAD_MW --> MENU_C
+
+    AUTH_C --> ORM
+    MENU_C --> ORM
+    ORDER_C --> ORM
+    PAY_C --> ORM
+    TABLE_C --> ORM
+    REPORT_C --> ORM
+
+    ORDER_C --> SOCKET_S
+    PAY_C --> SOCKET_S
+    PAY_C -->|"HTTPS"| MIDTRANS
+    MIDTRANS -->|"Webhook POST"| PAY_C
+    TABLE_C --> QR_FILES
+    MENU_C --> FILES
+    ORM -->|"TCP :3306"| MYSQL

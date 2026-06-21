@@ -1,0 +1,16 @@
+flowchart TD
+    Start([Start]) --> BukaLaporan["Admin Membuka\nHalaman Laporan Penjualan"]
+    BukaLaporan --> PilihTanggal["Pilih Rentang Tanggal\n(start_date, end_date)"]
+    PilihTanggal --> KirimRequest["GET /api/reports\n?start_date=...&end_date=..."]
+    KirimRequest --> FilterDB["Server Filter Order\nStatus: paid/processing/completed\nDalam Rentang Tanggal"]
+
+    FilterDB --> HitungTotal["Hitung Total Pendapatan\n(SUM total_amount)"]
+    HitungTotal --> HitungJumlah["Hitung Jumlah Pesanan\n(COUNT orders)"]
+    HitungJumlah --> HitungRataRata["Hitung Rata-rata\nPer Pesanan"]
+    HitungRataRata --> HitungBestSeller["Hitung Menu Terlaris\n(GROUP BY menu, SUM qty)\nAmbil TOP 10"]
+
+    HitungBestSeller --> TampilLaporan["Tampilkan Laporan:\n• Total Pendapatan\n• Total Pesanan\n• Rata-rata per Pesanan\n• Menu Terlaris\n• Detail Pesanan"]
+
+    TampilLaporan --> UbahFilter{"Admin Ubah\nFilter?"}
+    UbahFilter -->|Ya| PilihTanggal
+    UbahFilter -->|Tidak| End([End])

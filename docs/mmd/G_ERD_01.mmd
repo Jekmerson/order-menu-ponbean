@@ -1,0 +1,70 @@
+erDiagram
+    USERS {
+        INT id PK "Primary Key, Auto Increment"
+        VARCHAR nama "NOT NULL (100)"
+        VARCHAR username "NOT NULL, UNIQUE (50)"
+        VARCHAR password "NOT NULL (255)"
+        ENUM role "admin / kasir"
+        DATETIME created_at "Timestamps"
+        DATETIME updated_at "Timestamps"
+    }
+
+    CATEGORIES {
+        INT id PK "Primary Key, Auto Increment"
+        VARCHAR nama "NOT NULL (100)"
+        VARCHAR icon "DEFAULT emoji (50)"
+        DATETIME created_at "Timestamps"
+        DATETIME updated_at "Timestamps"
+    }
+
+    MENUS {
+        INT id PK "Primary Key, Auto Increment"
+        INT category_id FK "NOT NULL"
+        VARCHAR nama "NOT NULL (150)"
+        TEXT deskripsi "NULL"
+        DECIMAL harga "NOT NULL (10,0)"
+        VARCHAR gambar "NULL (255)"
+        BOOLEAN is_available "DEFAULT true"
+        DATETIME created_at "Timestamps"
+        DATETIME updated_at "Timestamps"
+    }
+
+    TABLES {
+        INT id PK "Primary Key, Auto Increment"
+        INT nomor_meja "NOT NULL, UNIQUE"
+        VARCHAR qr_code "NULL (255)"
+        BOOLEAN is_active "DEFAULT true"
+        DATETIME created_at "Timestamps"
+        DATETIME updated_at "Timestamps"
+    }
+
+    ORDERS {
+        INT id PK "Primary Key, Auto Increment"
+        VARCHAR order_number "NOT NULL, UNIQUE (30)"
+        INT table_id FK "NOT NULL"
+        VARCHAR customer_name "NULL (100)"
+        ENUM status "5 values"
+        VARCHAR payment_method "NULL (50)"
+        VARCHAR payment_id "NULL (100)"
+        DECIMAL total_amount "NOT NULL (12,0)"
+        TEXT note "NULL"
+        DATETIME created_at "Timestamps"
+        DATETIME updated_at "Timestamps"
+    }
+
+    ORDER_ITEMS {
+        INT id PK "Primary Key, Auto Increment"
+        INT order_id FK "NOT NULL"
+        INT menu_id FK "NOT NULL"
+        INT quantity "NOT NULL, DEFAULT 1"
+        DECIMAL price "NOT NULL (10,0)"
+        DECIMAL subtotal "NOT NULL (12,0)"
+        TEXT note "NULL"
+        DATETIME created_at "Timestamps"
+        DATETIME updated_at "Timestamps"
+    }
+
+    CATEGORIES ||--o{ MENUS : "has many"
+    TABLES ||--o{ ORDERS : "has many"
+    ORDERS ||--o{ ORDER_ITEMS : "has many"
+    MENUS ||--o{ ORDER_ITEMS : "has many"

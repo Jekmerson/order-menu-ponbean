@@ -1,0 +1,63 @@
+classDiagram
+    direction TB
+
+    class APIService {
+        -baseURL: String
+        -interceptors: AxiosInterceptors
+        +create(config) AxiosInstance
+    }
+
+    class AuthAPI {
+        +login(data) Promise
+        +getProfile() Promise
+        +getUsers() Promise
+        +createUser(data) Promise
+        +deleteUser(id) Promise
+    }
+
+    class MenuAPI {
+        +getAll(params) Promise
+        +getById(id) Promise
+        +create(data) Promise
+        +update(id, data) Promise
+        +delete(id) Promise
+        +toggleAvailability(id) Promise
+        +getCategories() Promise
+        +createCategory(data) Promise
+        +updateCategory(id, data) Promise
+        +deleteCategory(id) Promise
+    }
+
+    class OrderAPI {
+        +create(data) Promise
+        +getAll(params) Promise
+        +getById(id) Promise
+        +updateStatus(id, status) Promise
+    }
+
+    class TableAPI {
+        +getAll() Promise
+        +create(data) Promise
+        +delete(id) Promise
+        +toggleStatus(id) Promise
+        +regenerateQR(id) Promise
+        +regenerateAllQR() Promise
+        +getQRData(id) Promise
+        +getQRPrintCards(id) Promise
+    }
+
+    class PaymentAPI {
+        +create(data) Promise
+        +checkStatus(orderId) Promise
+    }
+
+    class ReportAPI {
+        +get(params) Promise
+    }
+
+    APIService <|-- AuthAPI
+    APIService <|-- MenuAPI
+    APIService <|-- OrderAPI
+    APIService <|-- TableAPI
+    APIService <|-- PaymentAPI
+    APIService <|-- ReportAPI

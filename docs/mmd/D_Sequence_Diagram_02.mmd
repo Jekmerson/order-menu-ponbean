@@ -1,0 +1,43 @@
+sequenceDiagram
+    actor U as User (Admin/Kasir)
+    participant B as Browser (React)
+    participant S as Server (Express)
+    participant DB as MySQL Database
+
+    U->>B: Buka halaman /login
+    B-->>U: Tampilkan form login
+
+    U->>B: Input username & password
+    U->>B: Tekan tombol "Login"
+
+    B->>S: POST /api/auth/login {username, password}
+
+    S->>DB: SELECT * FROM users WHERE username = ?
+    DB-->>S: User data (atau null)
+
+    alt User tidak ditemukan
+        S-->>B: Response 401 "Username atau password salah"
+        B-->>U: Tampilkan error message
+    else User ditemukan
+        S->>S: bcrypt.compare(password, user.password)
+
+        alt Password tidak cocok
+            S-->>B: Response 401 "Username atau password salah"
+            B-->>U: Tampilkan error message
+        else Password cocok
+            S->>S: jwt.sign({id, username, nama, role}, SECRET, {expiresIn: "7d"})
+            S-->>B: Response 200 {token, user: {id, nama, username, role}}
+
+            B->>B: localStorage.setItem("ponbean_token", token)
+            B->>B: localStorage.setItem("ponbean_user", JSON.stringify(user))
+            B->>B: setUser(userData) di AuthContext
+
+            alt role = "admin"
+                B->>B: Navigate to /admin
+                B-->>U: Tampilkan Admin Dashboard
+            else role = "kasir"
+                B->>B: Navigate to /kasir
+                B-->>U: Tampilkan Kasir Dashboard
+            end
+        end
+    end

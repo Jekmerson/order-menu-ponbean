@@ -1,0 +1,49 @@
+flowchart TD
+    Start([Start]) --> ScanQR["Pelanggan Scan QR Code di Meja"]
+    ScanQR --> OpenMenu["Browser Membuka Halaman Menu"]
+    OpenMenu --> LoadMenu["Sistem Memuat Daftar Menu"]
+    LoadMenu --> DisplayMenu["Tampilkan Menu Berdasarkan Kategori"]
+
+    DisplayMenu --> PilihItem["Pelanggan Memilih Item Menu"]
+    PilihItem --> CekKeranjang{"Item Sudah Ada\ndi Keranjang?"}
+    CekKeranjang -->|Ya| TambahQty["Tambah Quantity + 1"]
+    CekKeranjang -->|Tidak| TambahBaru["Tambahkan Item Baru"]
+    TambahQty --> UpdateBadge["Update Badge Keranjang"]
+    TambahBaru --> UpdateBadge
+
+    UpdateBadge --> TambahLagi{"Tambah Item Lagi?"}
+    TambahLagi -->|Ya| PilihItem
+    TambahLagi -->|Tidak| BukaKeranjang["Buka Keranjang"]
+
+    BukaKeranjang --> AturKeranjang["Atur Quantity & Catatan"]
+    AturKeranjang --> TombolPesan["Tekan 'Buat Pesanan'"]
+
+    TombolPesan --> ValidasiMeja{"Meja Valid\n& Aktif?"}
+    ValidasiMeja -->|Tidak| ErrorMeja["Tampilkan Error"]
+    ErrorMeja --> EndErr([End])
+    ValidasiMeja -->|Ya| ValidasiItem{"Semua Item\nTersedia?"}
+    ValidasiItem -->|Tidak| ErrorItem["Tampilkan Error Menu"]
+    ErrorItem --> DisplayMenu
+    ValidasiItem -->|Ya| HitungTotal["Hitung Total Harga"]
+
+    HitungTotal --> SimpanOrder["Simpan Pesanan ke Database\nGenerate Nomor: ORD-YYYYMMDD-XXX"]
+    SimpanOrder --> EmitSocket["Kirim Notifikasi Real-time\nke Dashboard Kasir via Socket.io"]
+    EmitSocket --> RequestPayment["Request Snap Token ke Midtrans"]
+    RequestPayment --> TampilMidtrans["Tampilkan Popup Pembayaran Midtrans"]
+
+    TampilMidtrans --> PilihMetode["Pelanggan Pilih Metode Pembayaran\n(QRIS / VA / e-Wallet / Kartu Kredit)"]
+    PilihMetode --> ProsesBayar["Proses Pembayaran"]
+    ProsesBayar --> HasilBayar{"Pembayaran Berhasil?"}
+
+    HasilBayar -->|Ya| UpdatePaid["Webhook: Update Status = 'paid'"]
+    HasilBayar -->|Tidak| UpdateCancelled["Webhook: Update Status = 'cancelled'"]
+
+    UpdatePaid --> EmitUpdate["Kirim Update Real-time via Socket.io"]
+    UpdateCancelled --> EmitUpdate
+    EmitUpdate --> HalamanTracking["Redirect ke Halaman Tracking Pesanan"]
+
+    HalamanTracking --> KasirProses["Kasir Menerima & Memproses Pesanan"]
+    KasirProses --> UpdateProcessing["Update Status: 'processing'"]
+    UpdateProcessing --> UpdateCompleted["Update Status: 'completed'"]
+    UpdateCompleted --> PelangganNotif["Pelanggan Mendapat Notifikasi\nPesanan Selesai"]
+    PelangganNotif --> End([End])

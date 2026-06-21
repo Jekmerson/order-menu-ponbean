@@ -1,0 +1,50 @@
+graph TB
+    subgraph "Jaringan Kafe (WiFi)"
+        ROUTER["📡 WiFi Router\n(192.168.x.1)"]
+
+        subgraph "Server (Komputer Kasir)"
+            SERVER_PC["💻 Komputer Server\nIP: 192.168.x.100"]
+
+            NODE_P["Node.js Process"]
+            VITE_P["Vite Dev Server"]
+            MYSQL_P["MySQL Server\n(via Laragon/XAMPP)"]
+
+            NODE_P -->|":5000"| SERVER_PC
+            VITE_P -->|":5173"| SERVER_PC
+            MYSQL_P -->|":3306"| SERVER_PC
+        end
+
+        subgraph "Meja 1"
+            QR1["📱 QR Code\n→ 192.168.x.100:5173\n/menu/1"]
+            HP1["Smartphone\nPelanggan"]
+        end
+
+        subgraph "Meja 2"
+            QR2["📱 QR Code\n→ 192.168.x.100:5173\n/menu/2"]
+            HP2["Smartphone\nPelanggan"]
+        end
+
+        subgraph "Meja N"
+            QRN["📱 QR Code\n→ 192.168.x.100:5173\n/menu/N"]
+            HPN["Smartphone\nPelanggan"]
+        end
+
+        subgraph "Kasir"
+            KASIR_PC["💻 Browser Kasir\nhttp://192.168.x.100:5173\n/kasir"]
+            THERMAL["🖨️ Printer Thermal"]
+        end
+
+        HP1 -->|WiFi| ROUTER
+        HP2 -->|WiFi| ROUTER
+        HPN -->|WiFi| ROUTER
+        KASIR_PC -->|WiFi/LAN| ROUTER
+        ROUTER --> SERVER_PC
+        KASIR_PC --> THERMAL
+    end
+
+    subgraph "Internet"
+        MIDTRANS["💳 Midtrans\nPayment Gateway"]
+    end
+
+    ROUTER -->|"Internet Gateway"| MIDTRANS
+    MIDTRANS -->|"Webhook"| ROUTER

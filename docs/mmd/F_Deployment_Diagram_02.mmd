@@ -1,0 +1,34 @@
+flowchart LR
+    subgraph "WiFi Lokal / LAN"
+        direction TB
+
+        subgraph "Pelanggan"
+            HP["📱 Smartphone\nBrowser"]
+        end
+
+        subgraph "Server Host"
+            FE["Vite Dev Server\n:5173"]
+            BE["Express Server\n:5000"]
+            DB["MySQL\n:3306"]
+        end
+
+        subgraph "Admin/Kasir"
+            PC["💻 Komputer\nBrowser"]
+        end
+    end
+
+    subgraph "Internet"
+        MT["💳 Midtrans API\napi.sandbox.midtrans.com"]
+    end
+
+    HP -->|"HTTP :5173\n(React App)"| FE
+    HP -->|"HTTP :5000\n(REST API)"| BE
+    HP -->|"WS :5000\n(Socket.io)"| BE
+
+    PC -->|"HTTP :5173"| FE
+    PC -->|"HTTP :5000"| BE
+    PC -->|"WS :5000"| BE
+
+    BE -->|"TCP :3306"| DB
+    BE -->|"HTTPS"| MT
+    MT -->|"POST Webhook"| BE

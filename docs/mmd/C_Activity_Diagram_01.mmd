@@ -1,0 +1,55 @@
+flowchart TD
+    Start([Start]) --> ScanQR["Scan QR Code di Meja"]
+    ScanQR --> OpenMenu["Browser Membuka Halaman Menu\n/menu/:tableId"]
+    OpenMenu --> LoadMenu["Sistem Memuat Daftar Menu\n(GET /api/menus?available=true)"]
+    LoadMenu --> DisplayMenu["Tampilkan Menu\nBerdasarkan Kategori"]
+
+    DisplayMenu --> PilihItem["Pelanggan Memilih Item Menu"]
+    PilihItem --> CekKeranjang{"Item Sudah\nAda di Keranjang?"}
+
+    CekKeranjang -->|Ya| TambahQty["Tambah Quantity + 1"]
+    CekKeranjang -->|Tidak| TambahBaru["Tambahkan Item Baru\n(quantity = 1)"]
+
+    TambahQty --> UpdateBadge["Update Badge Keranjang"]
+    TambahBaru --> UpdateBadge
+
+    UpdateBadge --> TambahLagi{"Tambah Item\nLagi?"}
+    TambahLagi -->|Ya| PilihItem
+    TambahLagi -->|Tidak| BukaKeranjang["Buka Cart Drawer"]
+
+    BukaKeranjang --> AturKeranjang["Atur Quantity & Catatan"]
+    AturKeranjang --> IsiNama["Isi Nama Pelanggan\n(Opsional)"]
+    IsiNama --> TombolPesan["Tekan Tombol\n'Buat Pesanan'"]
+
+    TombolPesan --> ValidasiMeja{"Validasi Meja\nAktif?"}
+    ValidasiMeja -->|Tidak| ErrorMeja["Tampilkan Error:\nMeja Tidak Valid"]
+    ErrorMeja --> End1([End])
+
+    ValidasiMeja -->|Ya| ValidasiItem{"Semua Item\nTersedia?"}
+    ValidasiItem -->|Tidak| ErrorItem["Tampilkan Error:\nMenu Tidak Tersedia"]
+    ErrorItem --> DisplayMenu
+
+    ValidasiItem -->|Ya| HitungTotal["Hitung Total Harga"]
+    HitungTotal --> GenOrderNum["Generate Nomor Pesanan\nORD-YYYYMMDD-XXX"]
+    GenOrderNum --> SimpanOrder["Simpan Order & OrderItems\nke Database"]
+    SimpanOrder --> EmitSocket["Emit Socket.io Event\n'new_order'"]
+    EmitSocket --> RequestPayment["Request Snap Token\nke Midtrans API"]
+
+    RequestPayment --> TampilMidtrans["Tampilkan Popup\nPembayaran Midtrans"]
+    TampilMidtrans --> PilihMetode["Pelanggan Pilih\nMetode Pembayaran"]
+    PilihMetode --> ProsesBayar["Proses Pembayaran"]
+
+    ProsesBayar --> HasilBayar{"Pembayaran\nBerhasil?"}
+    HasilBayar -->|Ya| WebhookPaid["Midtrans Kirim Webhook\nstatus = settlement"]
+    HasilBayar -->|Tidak| WebhookFail["Midtrans Kirim Webhook\nstatus = deny/cancel/expire"]
+    HasilBayar -->|Pending| WebhookPending["Status Tetap\npending_payment"]
+
+    WebhookPaid --> UpdatePaid["Update Status = 'paid'"]
+    WebhookFail --> UpdateCancelled["Update Status = 'cancelled'"]
+    WebhookPending --> HalamanTracking
+
+    UpdatePaid --> EmitUpdate["Emit Socket.io Event\n'order_updated'"]
+    UpdateCancelled --> EmitUpdate
+
+    EmitUpdate --> HalamanTracking["Redirect ke Halaman\nTracking Pesanan"]
+    HalamanTracking --> End2([End])

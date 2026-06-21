@@ -1,0 +1,76 @@
+graph LR
+    subgraph USERS ["USERS"]
+        direction TB
+        U1["*id : INT(11) PK"]
+        U2["nama : VARCHAR(100)"]
+        U3["username : VARCHAR(50)"]
+        U4["password : VARCHAR(255)"]
+        U5["role : ENUM"]
+        U6["created_at : DATETIME"]
+        U7["updated_at : DATETIME"]
+    end
+
+    subgraph CATEGORIES ["CATEGORIES"]
+        direction TB
+        C1["*id : INT(11) PK"]
+        C2["nama : VARCHAR(100)"]
+        C3["icon : VARCHAR(50)"]
+        C4["created_at : DATETIME"]
+        C5["updated_at : DATETIME"]
+    end
+
+    subgraph MENUS ["MENUS"]
+        direction TB
+        M1["*id : INT(11) PK"]
+        M2["**category_id : INT(11) FK"]
+        M3["nama : VARCHAR(150)"]
+        M4["deskripsi : TEXT"]
+        M5["harga : DECIMAL(10,0)"]
+        M6["gambar : VARCHAR(255)"]
+        M7["is_available : BOOLEAN"]
+        M8["created_at : DATETIME"]
+        M9["updated_at : DATETIME"]
+    end
+
+    subgraph TABLES ["TABLES"]
+        direction TB
+        T1["*id : INT(11) PK"]
+        T2["nomor_meja : INT(11)"]
+        T3["qr_code : VARCHAR(255)"]
+        T4["is_active : BOOLEAN"]
+        T5["created_at : DATETIME"]
+        T6["updated_at : DATETIME"]
+    end
+
+    subgraph ORDERS ["ORDERS"]
+        direction TB
+        O1["*id : INT(11) PK"]
+        O2["order_number : VARCHAR(30)"]
+        O3["**table_id : INT(11) FK"]
+        O4["customer_name : VARCHAR(100)"]
+        O5["status : ENUM"]
+        O6["payment_method : VARCHAR(50)"]
+        O7["payment_id : VARCHAR(100)"]
+        O8["total_amount : DECIMAL(12,0)"]
+        O9["note : TEXT"]
+        O10["created_at : DATETIME"]
+        O11["updated_at : DATETIME"]
+    end
+
+    subgraph ORDER_ITEMS ["ORDER_ITEMS"]
+        direction TB
+        OI1["*id : INT(11) PK"]
+        OI2["**order_id : INT(11) FK"]
+        OI3["**menu_id : INT(11) FK"]
+        OI4["quantity : INT(11)"]
+        OI5["price : DECIMAL(10,0)"]
+        OI6["subtotal : DECIMAL(12,0)"]
+        OI7["note : TEXT"]
+        OI8["created_at : DATETIME"]
+        OI9["updated_at : DATETIME"]
+    end
+
+    C1 -->|"1 : M"| M2
+    T1 -->|"1 : M"| O3
+    O1 -->|"1 : M"| OI2
+    M1 -->|"1 : M"| OI3

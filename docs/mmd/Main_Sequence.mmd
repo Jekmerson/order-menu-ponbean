@@ -1,0 +1,55 @@
+sequenceDiagram
+    actor P as Pelanggan
+    participant B as Browser (React)
+    participant S as Server (Express)
+    participant DB as MySQL Database
+    participant MT as Midtrans API
+    participant SK as Socket.io
+    participant K as Dashboard Kasir
+
+    P->>B: Scan QR Code di meja
+    B->>S: GET /api/menus?available=true
+    S->>DB: Query menu tersedia
+    DB-->>S: Daftar menu
+    S-->>B: Response menu + kategori
+    B-->>P: Tampilkan halaman menu
+
+    P->>B: Pilih item & tambah ke keranjang
+    P->>B: Tekan "Buat Pesanan"
+    B->>S: POST /api/orders {table_id, items[], customer_name}
+
+    S->>DB: Validasi meja & item menu
+    S->>S: Hitung total & generate order number
+    S->>DB: INSERT order + order_items
+    DB-->>S: Order created
+    S->>SK: emit("new_order", orderData)
+    SK->>K: Notifikasi pesanan baru
+    S-->>B: Response {order}
+
+    B->>S: POST /api/payment/create {order_id}
+    S->>MT: snap.createTransaction(params)
+    MT-->>S: {snap_token, redirect_url}
+    S->>DB: UPDATE order SET payment_id
+    S-->>B: Response {snap_token}
+
+    B-->>P: Tampilkan popup Midtrans
+    P->>MT: Pilih metode & bayar
+
+    MT->>S: POST /api/payment/notification (webhook)
+    S->>DB: UPDATE order SET status = "paid"
+    S->>SK: emit("order_updated")
+    SK->>K: Update status di dashboard
+    SK->>B: Update status di tracking
+    S-->>MT: Response 200 OK
+
+    K->>S: PATCH /api/orders/:id/status {status: "processing"}
+    S->>DB: UPDATE order status
+    S->>SK: emit("order_updated")
+    SK->>B: Status: Diproses
+    B-->>P: Notifikasi real-time
+
+    K->>S: PATCH /api/orders/:id/status {status: "completed"}
+    S->>DB: UPDATE order status
+    S->>SK: emit("order_updated")
+    SK->>B: Status: Selesai ✅
+    B-->>P: Pesanan selesai!

@@ -1,0 +1,23 @@
+sequenceDiagram
+    actor A as Admin
+    participant B as Browser (React)
+    participant S as Server (Express)
+    participant DB as MySQL Database
+
+    A->>B: Buka halaman Laporan Penjualan
+    A->>B: Pilih rentang tanggal (start_date, end_date)
+    B->>S: GET /api/reports?start_date=2026-06-01&end_date=2026-06-10
+
+    S->>S: Middleware auth & adminOnly
+
+    S->>DB: SELECT orders WHERE status IN ('paid','processing','completed')<br/>AND created_at BETWEEN start_date AND end_date<br/>JOIN tables, order_items, menus
+    DB-->>S: Daftar orders + items
+
+    S->>S: Hitung totalRevenue = SUM(total_amount)
+    S->>S: Hitung totalOrders = COUNT(orders)
+    S->>S: Hitung avgOrderValue = totalRevenue / totalOrders
+    S->>S: Hitung bestSellers: GROUP BY menu nama, SUM qty, TOP 10
+
+    S-->>B: Response {totalRevenue, totalOrders, avgOrderValue, bestSellers, orders}
+
+    B-->>A: Tampilkan laporan:<br/>• Statistik ringkasan<br/>• Grafik menu terlaris<br/>• Tabel detail pesanan

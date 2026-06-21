@@ -1,0 +1,139 @@
+graph TB
+    subgraph "Perangkat Pelanggan"
+        subgraph "Smartphone / Browser"
+            CAMERA["📷 Kamera\n(QR Scanner)"]
+            BROWSER_C["🌐 Web Browser\n(Chrome / Safari)"]
+            subgraph "React App (Client)"
+                REACT["⚛️ React 19\n+ Vite 8"]
+                ROUTER_C["React Router v7"]
+                CONTEXT["Context API\n(Auth + Cart)"]
+                SOCKETC["Socket.io Client"]
+                AXIOS["Axios HTTP Client"]
+            end
+        end
+    end
+
+    subgraph "Komputer Admin / Kasir"
+        BROWSER_AK["🌐 Web Browser"]
+        subgraph "React App (Admin/Kasir)"
+            REACT_AK["⚛️ React 19\n+ Vite 8"]
+            ROUTER_AK["React Router v7"]
+            CONTEXT_AK["Context API\n(Auth)"]
+            SOCKET_AK["Socket.io Client"]
+            AXIOS_AK["Axios HTTP Client"]
+        end
+        PRINTER["🖨️ Printer Thermal\n80mm"]
+    end
+
+    subgraph "Server Lokal (Komputer Host)"
+        subgraph "Node.js Runtime"
+            EXPRESS["📦 Express.js\nHTTP Server\n(Port 5000)"]
+            SOCKETIO["🔌 Socket.io Server\n(WebSocket)"]
+
+            subgraph "Middleware Layer"
+                CORS["CORS"]
+                JWT_MW["JWT Auth\nMiddleware"]
+                MULTER["Multer\n(File Upload)"]
+            end
+
+            subgraph "Controller Layer"
+                AUTH_CTRL["AuthController"]
+                MENU_CTRL["MenuController"]
+                ORDER_CTRL["OrderController"]
+                PAY_CTRL["PaymentController"]
+                TABLE_CTRL["TableController"]
+                REPORT_CTRL["ReportController"]
+            end
+
+            subgraph "ORM Layer"
+                SEQUELIZE["Sequelize ORM"]
+                MODELS["Models:\nUser, Category, Menu,\nTable, Order, OrderItem"]
+            end
+
+            subgraph "External SDK"
+                MIDTRANS_SDK["Midtrans Client\n(Snap + Core API)"]
+                QR_LIB["QRCode Library"]
+                BCRYPT["bcryptjs"]
+                JWT_LIB["jsonwebtoken"]
+            end
+        end
+
+        subgraph "File System"
+            UPLOADS["📁 /uploads/\n(Gambar Menu)"]
+            QR_FILES["📁 /uploads/qrcodes/\n(QR Code PNG)"]
+        end
+
+        subgraph "MySQL Server"
+            MYSQL["🗄️ MySQL Database\n(Port 3306)"]
+            subgraph "Tables"
+                T_USERS["users"]
+                T_CATEGORIES["categories"]
+                T_MENUS["menus"]
+                T_TABLES["tables"]
+                T_ORDERS["orders"]
+                T_ORDER_ITEMS["order_items"]
+            end
+        end
+    end
+
+    subgraph "Cloud / External Services"
+        MIDTRANS_API["💳 Midtrans API\n(Payment Gateway)\nhttps://api.sandbox.midtrans.com"]
+        subgraph "Midtrans Services"
+            SNAP_API["Snap API\n(Token Generation)"]
+            CORE_API["Core API\n(Transaction Status)"]
+            WEBHOOK["Webhook\n(Notification POST)"]
+        end
+    end
+
+    %% Connections - Pelanggan
+    CAMERA -->|"Scan QR"| BROWSER_C
+    BROWSER_C -->|"Serve React App"| REACT
+    REACT --> ROUTER_C
+    REACT --> CONTEXT
+    AXIOS -->|"HTTP REST API\n(Port 5000)"| EXPRESS
+    SOCKETC -->|"WebSocket\n(Port 5000)"| SOCKETIO
+
+    %% Connections - Admin/Kasir
+    BROWSER_AK --> REACT_AK
+    REACT_AK --> ROUTER_AK
+    REACT_AK --> CONTEXT_AK
+    AXIOS_AK -->|"HTTP REST API"| EXPRESS
+    SOCKET_AK -->|"WebSocket"| SOCKETIO
+    REACT_AK -->|"Print"| PRINTER
+
+    %% Server Internal
+    EXPRESS --> CORS
+    EXPRESS --> JWT_MW
+    EXPRESS --> MULTER
+    CORS --> AUTH_CTRL
+    CORS --> MENU_CTRL
+    CORS --> ORDER_CTRL
+    CORS --> PAY_CTRL
+    CORS --> TABLE_CTRL
+    CORS --> REPORT_CTRL
+
+    AUTH_CTRL --> SEQUELIZE
+    MENU_CTRL --> SEQUELIZE
+    ORDER_CTRL --> SEQUELIZE
+    PAY_CTRL --> SEQUELIZE
+    TABLE_CTRL --> SEQUELIZE
+    REPORT_CTRL --> SEQUELIZE
+    SEQUELIZE --> MODELS
+    MODELS -->|"SQL Queries"| MYSQL
+
+    MENU_CTRL --> MULTER
+    MULTER -->|"Save Files"| UPLOADS
+    TABLE_CTRL --> QR_LIB
+    QR_LIB -->|"Save PNG"| QR_FILES
+    AUTH_CTRL --> BCRYPT
+    AUTH_CTRL --> JWT_LIB
+
+    %% Midtrans
+    PAY_CTRL --> MIDTRANS_SDK
+    MIDTRANS_SDK -->|"HTTPS"| MIDTRANS_API
+    MIDTRANS_API --> SNAP_API
+    MIDTRANS_API --> CORE_API
+    WEBHOOK -->|"POST /api/payment/notification"| EXPRESS
+
+    ORDER_CTRL --> SOCKETIO
+    PAY_CTRL --> SOCKETIO

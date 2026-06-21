@@ -1,0 +1,54 @@
+sequenceDiagram
+    actor P as Pelanggan
+    participant B as Browser (React)
+    participant S as Server (Express)
+    participant DB as MySQL Database
+    participant MT as Midtrans
+    participant SK as Socket.io
+
+    P->>B: Tekan "Bayar Sekarang"
+    B->>S: POST /api/payment/create {order_id}
+
+    S->>DB: SELECT order + items + table WHERE id = order_id
+    DB-->>S: Order data
+
+    alt Status bukan pending_payment
+        S-->>B: Response 400 "Pesanan sudah dibayar atau dibatalkan"
+    else Status = pending_payment
+        S->>S: Build Midtrans transaction parameter
+        Note right of S: transaction_details: {order_id, gross_amount}<br/>item_details: [{id, price, qty, name}]<br/>customer_details: {first_name}
+
+        S->>MT: snap.createTransaction(parameter)
+        MT-->>S: {token: "snap-xxx", redirect_url: "https://..."}
+
+        S->>DB: UPDATE orders SET payment_id = token, payment_method = "midtrans"
+        S-->>B: Response {snap_token, redirect_url, order_number}
+
+        B->>B: window.snap.pay(snap_token)
+        B-->>P: Tampilkan popup Midtrans Snap
+
+        P->>MT: Pilih metode & selesaikan pembayaran
+
+        Note over MT,S: Webhook Notification (Async)
+
+        MT->>S: POST /api/payment/notification {order_id, transaction_status, ...}
+
+        S->>MT: coreApi.transaction.notification(body)
+        MT-->>S: Verified notification data
+
+        S->>S: Extract order_number (hapus timestamp suffix)
+        S->>DB: SELECT order WHERE order_number = ?
+        DB-->>S: Order data
+
+        alt status = "settlement" or "capture" (fraud: accept)
+            S->>DB: UPDATE orders SET status = "paid", payment_method = payment_type
+            S->>SK: emit("order_updated", updatedOrder)
+        else status = "deny" or "cancel" or "expire"
+            S->>DB: UPDATE orders SET status = "cancelled"
+            S->>SK: emit("order_updated", updatedOrder)
+        else status = "pending"
+            Note over S: Tidak ada perubahan status
+        end
+
+        S-->>MT: Response 200 OK
+    end

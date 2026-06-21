@@ -1,0 +1,29 @@
+flowchart TD
+    Start([Start]) --> BukaLogin["Buka Halaman Login\n/login"]
+    BukaLogin --> InputCredential["Input Username\ndan Password"]
+    InputCredential --> ValidasiInput{"Username & Password\nTerisi?"}
+
+    ValidasiInput -->|Tidak| ErrorInput["Tampilkan Error:\nHarus Diisi"]
+    ErrorInput --> InputCredential
+
+    ValidasiInput -->|Ya| KirimRequest["Kirim POST Request\n/api/auth/login"]
+    KirimRequest --> CariUser["Server Mencari User\nBerdasarkan Username"]
+    CariUser --> UserAda{"User\nDitemukan?"}
+
+    UserAda -->|Tidak| ErrorLogin["Tampilkan Error:\nUsername atau Password Salah"]
+    ErrorLogin --> InputCredential
+
+    UserAda -->|Ya| ComparePassword["Bandingkan Password\ndengan bcrypt.compare()"]
+    ComparePassword --> PasswordCocok{"Password\nCocok?"}
+
+    PasswordCocok -->|Tidak| ErrorLogin
+    PasswordCocok -->|Ya| GenerateJWT["Generate Token JWT\n(payload: id, username, role)"]
+
+    GenerateJWT --> SimpanToken["Simpan Token & User\nke localStorage"]
+    SimpanToken --> CekRole{"Cek Role\nUser"}
+
+    CekRole -->|admin| RedirectAdmin["Redirect ke\n/admin"]
+    CekRole -->|kasir| RedirectKasir["Redirect ke\n/kasir"]
+
+    RedirectAdmin --> End([End])
+    RedirectKasir --> End

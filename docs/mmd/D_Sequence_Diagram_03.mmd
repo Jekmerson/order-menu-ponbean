@@ -1,0 +1,67 @@
+sequenceDiagram
+    actor A as Admin
+    participant B as Browser (React)
+    participant S as Server (Express)
+    participant FS as File System
+    participant DB as MySQL Database
+
+    Note over A,DB: Tambah Menu Baru
+
+    A->>B: Buka halaman Menu Management
+    B->>S: GET /api/menus (dengan auth header)
+    S->>DB: SELECT * FROM menus JOIN categories
+    DB-->>S: Daftar menu
+    S-->>B: Response JSON menus
+    B-->>A: Tampilkan daftar menu
+
+    A->>B: Klik "Tambah Menu"
+    A->>B: Isi form (nama, kategori, harga, deskripsi)
+    A->>B: Upload file gambar
+    A->>B: Tekan "Simpan"
+
+    B->>S: POST /api/menus (multipart/form-data)
+    Note right of B: Headers: Authorization: Bearer token<br/>Content-Type: multipart/form-data
+
+    S->>S: Middleware auth: verify JWT
+    S->>S: Middleware adminOnly: check role
+    S->>S: Middleware upload: process file (Multer)
+    S->>FS: Simpan gambar ke /uploads/{uniqueName}.ext
+    S->>DB: INSERT INTO menus (nama, category_id, harga, deskripsi, gambar)
+    DB-->>S: Menu created (ID)
+    S->>DB: SELECT menu JOIN category WHERE id = newId
+    DB-->>S: Menu with category
+    S-->>B: Response 201 {menu: menuWithCategory}
+    B-->>A: Tampilkan notifikasi sukses & refresh list
+
+    Note over A,DB: Edit Menu
+
+    A->>B: Klik "Edit" pada menu
+    A->>B: Ubah data & (opsional) upload gambar baru
+    B->>S: PUT /api/menus/{id} (multipart/form-data)
+
+    S->>DB: SELECT * FROM menus WHERE id = ?
+    DB-->>S: Menu data (termasuk gambar lama)
+
+    opt Gambar baru diupload
+        S->>FS: Hapus file gambar lama
+        S->>FS: Simpan gambar baru
+    end
+
+    S->>DB: UPDATE menus SET ... WHERE id = ?
+    DB-->>S: Updated
+    S-->>B: Response {menu: updatedMenu}
+    B-->>A: Tampilkan notifikasi & refresh
+
+    Note over A,DB: Hapus Menu
+
+    A->>B: Klik "Hapus" pada menu
+    A->>B: Konfirmasi penghapusan
+    B->>S: DELETE /api/menus/{id}
+
+    S->>DB: SELECT * FROM menus WHERE id = ?
+    DB-->>S: Menu data
+    S->>FS: Hapus file gambar (jika ada)
+    S->>DB: DELETE FROM menus WHERE id = ?
+    DB-->>S: Deleted
+    S-->>B: Response {message: "Menu berhasil dihapus"}
+    B-->>A: Refresh daftar menu

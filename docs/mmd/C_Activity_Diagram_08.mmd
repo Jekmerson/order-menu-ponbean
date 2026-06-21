@@ -1,0 +1,31 @@
+flowchart TD
+    Start([Start]) --> BukaUser["Admin Membuka\nHalaman User Management"]
+    BukaUser --> LoadUser["Sistem Memuat\nDaftar User"]
+    LoadUser --> TampilUser["Tampilkan Daftar User\n(Tanpa Password)"]
+
+    TampilUser --> PilihAksi{"Pilih Aksi"}
+
+    PilihAksi -->|Tambah User| FormTambah["Buka Form\nTambah User"]
+    PilihAksi -->|Hapus User| KonfirmasiHapus{"User yang\nDihapus = Diri\nSendiri?"}
+
+    FormTambah --> IsiForm["Isi Nama, Username,\nPassword, Role"]
+    IsiForm --> ValidasiInput{"Input\nValid?"}
+    ValidasiInput -->|Tidak| ErrorValidasi["Tampilkan Error\nValidasi"]
+    ErrorValidasi --> IsiForm
+    ValidasiInput -->|Ya| CekUsername{"Username\nSudah Ada?"}
+    CekUsername -->|Ya| ErrorDuplikat["Tampilkan Error:\nUsername Sudah Digunakan"]
+    ErrorDuplikat --> IsiForm
+    CekUsername -->|Tidak| HashPassword["Hash Password\ndengan bcrypt"]
+    HashPassword --> SimpanUser["Simpan User Baru\nke Database"]
+    SimpanUser --> Notifikasi
+
+    KonfirmasiHapus -->|Ya| ErrorSelf["Tampilkan Error:\nTidak Bisa Hapus\nAkun Sendiri"]
+    ErrorSelf --> TampilUser
+    KonfirmasiHapus -->|Tidak| KonfirmasiYa{"Konfirmasi\nHapus?"}
+    KonfirmasiYa -->|Tidak| TampilUser
+    KonfirmasiYa -->|Ya| HapusUser["Hapus User\ndari Database"]
+    HapusUser --> Notifikasi
+
+    Notifikasi["Tampilkan Notifikasi\nSukses"]
+    Notifikasi --> RefreshList["Refresh Daftar User"]
+    RefreshList --> TampilUser

@@ -1,0 +1,96 @@
+sequenceDiagram
+    actor P as Pelanggan
+    participant B as Browser (React)
+    participant S as Server (Express)
+    participant DB as MySQL Database
+    participant MT as Midtrans API
+    participant SK as Socket.io
+    participant K as Dashboard Kasir
+
+    Note over P,K: Fase 1: Scan QR Code & Lihat Menu
+
+    P->>B: Scan QR Code di meja
+    B->>B: Buka URL /menu/{tableId}
+    B->>S: GET /api/menus?available=true
+    S->>DB: SELECT * FROM menus WHERE is_available=true
+    DB-->>S: Daftar menu
+    S-->>B: Response JSON (menus + categories)
+    B-->>P: Tampilkan halaman menu
+
+    Note over P,K: Fase 2: Tambah ke Keranjang
+
+    P->>B: Pilih item menu & tekan "Tambah"
+    B->>B: Tambah item ke CartContext (state)
+    B-->>P: Update badge keranjang
+    P->>B: Atur quantity & catatan di cart drawer
+    B->>B: Update state keranjang
+
+    Note over P,K: Fase 3: Buat Pesanan
+
+    P->>B: Isi nama (opsional) & tekan "Buat Pesanan"
+    B->>S: POST /api/orders {table_id, customer_name, items[], note}
+    S->>DB: SELECT * FROM tables WHERE id = table_id
+    DB-->>S: Data meja (validasi aktif)
+
+    loop Untuk setiap item
+        S->>DB: SELECT * FROM menus WHERE id = menu_id
+        DB-->>S: Data menu (validasi tersedia)
+        S->>S: Hitung subtotal = harga × quantity
+    end
+
+    S->>S: Generate order_number (ORD-YYYYMMDD-XXX)
+    S->>DB: INSERT INTO orders (order_number, table_id, total_amount, ...)
+    DB-->>S: Order created (ID)
+
+    loop Untuk setiap order item
+        S->>DB: INSERT INTO order_items (order_id, menu_id, quantity, price, subtotal)
+    end
+
+    S->>DB: SELECT order WITH relations (table, items, menus)
+    DB-->>S: Complete order data
+
+    S->>SK: emit("new_order", completeOrder)
+    SK->>K: Event "new_order"
+    K-->>K: Tampilkan notifikasi pesanan baru
+
+    S-->>B: Response 201 {order: completeOrder}
+    B->>B: Kosongkan keranjang
+    B-->>P: Tampilkan info pesanan
+
+    Note over P,K: Fase 4: Pembayaran via Midtrans
+
+    B->>S: POST /api/payment/create {order_id}
+    S->>DB: SELECT order WHERE id = order_id
+    DB-->>S: Order data + items
+    S->>S: Bangun parameter transaksi Midtrans
+    S->>MT: snap.createTransaction(parameter)
+    MT-->>S: {token, redirect_url}
+    S->>DB: UPDATE orders SET payment_id = token
+    S-->>B: Response {snap_token, redirect_url}
+
+    B->>B: Buka Midtrans Snap popup
+    P->>B: Pilih metode pembayaran & bayar
+    B->>MT: Proses pembayaran
+
+    MT->>S: POST /api/payment/notification (webhook)
+    S->>MT: coreApi.transaction.notification(body)
+    MT-->>S: {transaction_status, fraud_status}
+
+    alt transaction_status = "settlement"
+        S->>DB: UPDATE orders SET status = "paid"
+        S->>SK: emit("order_updated", updatedOrder)
+        SK->>K: Event "order_updated"
+        SK->>B: Event "order_updated"
+    else transaction_status = "deny/cancel/expire"
+        S->>DB: UPDATE orders SET status = "cancelled"
+        S->>SK: emit("order_updated", updatedOrder)
+    end
+
+    S-->>MT: Response 200 OK
+
+    B->>B: Redirect ke /order/{orderNumber}
+    B->>S: GET /api/orders/{orderNumber}
+    S->>DB: SELECT order WHERE order_number = orderNumber
+    DB-->>S: Order data
+    S-->>B: Response order data
+    B-->>P: Tampilkan halaman tracking pesanan

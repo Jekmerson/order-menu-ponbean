@@ -1,0 +1,58 @@
+classDiagram
+    direction TB
+
+    class AuthContext {
+        -user: Object|null
+        -loading: Boolean
+        +login(username, password) Promise~userData~
+        +logout() void
+    }
+
+    class AuthProvider {
+        -user: State~Object|null~
+        -loading: State~Boolean~
+        +useEffect() void
+        +login(username, password) Promise
+        +logout() void
+        +render() JSX
+    }
+
+    class CartContext {
+        -items: Array~CartItem~
+        -tableId: Number|null
+        -tableNumber: Number|null
+        +totalItems: Number
+        +totalPrice: Number
+        +addItem(menu) void
+        +removeItem(menuId) void
+        +updateQuantity(menuId, qty) void
+        +updateNote(menuId, note) void
+        +clearCart() void
+        +setTableId(id) void
+        +setTableNumber(num) void
+    }
+
+    class CartItem {
+        +Number menu_id
+        +String nama
+        +Number harga
+        +String gambar
+        +Number quantity
+        +String note
+    }
+
+    class CartProvider {
+        -items: State~Array~
+        -tableId: State~Number|null~
+        -tableNumber: State~Number|null~
+        +addItem: Callback
+        +removeItem: Callback
+        +updateQuantity: Callback
+        +updateNote: Callback
+        +clearCart: Callback
+        +render() JSX
+    }
+
+    AuthContext <|-- AuthProvider
+    CartContext <|-- CartProvider
+    CartProvider "1" --> "0..*" CartItem : manages
