@@ -597,6 +597,7 @@ ul, ol {
   font-weight: 500;
   transition: all var(--transition-fast);
   cursor: pointer;
+  position: relative;
 }
 
 .sidebar-link:hover {

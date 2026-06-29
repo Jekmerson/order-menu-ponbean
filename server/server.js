@@ -115,8 +115,8 @@ const startServer = async () => {
     await sequelize.sync({ alter: false });
     console.log('[DB] Sinkronisasi model selesai.');
 
-    server.listen(PORT, () => {
-      console.log(`[Server] Ponbean API berjalan di http://localhost:${PORT}`);
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`[Server] Ponbean API berjalan di http://0.0.0.0:${PORT}`);
     });
   } catch (error) {
     console.error('[DB] Gagal koneksi ke database:', error.message);

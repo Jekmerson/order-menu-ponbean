@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
-
+docs/
+diagrams/
 # Environment variables (berisi API keys rahasia)
 .env
 
