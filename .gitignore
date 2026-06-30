@@ -32,3 +32,4 @@ server/uploads/qrcodes/
 
 # Local files
 *.local
+server/.last_ip

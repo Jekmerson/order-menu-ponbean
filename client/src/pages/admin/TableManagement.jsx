@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { tableAPI, UPLOADS_URL } from '../../services/api';
-import { MdAdd, MdDelete, MdQrCode2, MdToggleOn, MdToggleOff, MdRefresh, MdPrint, MdDownload } from 'react-icons/md';
+import { MdAdd, MdDelete, MdQrCode2, MdToggleOn, MdToggleOff, MdRefresh, MdPrint, MdDownload, MdWifi } from 'react-icons/md';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const TableManagement = () => {
   const [tables, setTables] = useState([]);
@@ -12,6 +13,7 @@ const TableManagement = () => {
   const [qrLoading, setQrLoading] = useState(false);
   const [printCards, setPrintCards] = useState(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [networkInfo, setNetworkInfo] = useState(null);
   const printRef = useRef(null);
 
   const fetchTables = async () => {
@@ -25,7 +27,16 @@ const TableManagement = () => {
     }
   };
 
-  useEffect(() => { fetchTables(); }, []);
+  const fetchNetworkInfo = async () => {
+    try {
+      const res = await api.get('/network-info');
+      setNetworkInfo(res.data);
+    } catch (err) {
+      // silently fail
+    }
+  };
+
+  useEffect(() => { fetchTables(); fetchNetworkInfo(); }, []);
 
   const handleAdd = async () => {
     if (!nomorMeja) return toast.error('Nomor meja harus diisi');
@@ -314,6 +325,30 @@ const TableManagement = () => {
           </button>
         </div>
       </div>
+
+      {/* Network Info Banner */}
+      {networkInfo && (
+        <div className="card" style={{
+          marginBottom: '16px',
+          padding: '14px 20px',
+          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08))',
+          border: '1px solid rgba(16, 185, 129, 0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          flexWrap: 'wrap',
+        }}>
+          <MdWifi size={20} style={{ color: 'var(--success)', flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              IP Address Saat Ini: <span style={{ color: 'var(--primary)', fontFamily: 'monospace' }}>{networkInfo.ip}</span>
+            </p>
+            <p className="text-xs text-muted" style={{ marginTop: '2px' }}>
+              QR Code otomatis diperbarui saat IP/WiFi berubah. Client: {networkInfo.client_url}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Add Table */}
       <div className="card" style={{ marginBottom: '24px' }}>
