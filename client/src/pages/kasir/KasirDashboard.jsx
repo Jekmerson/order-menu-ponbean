@@ -24,7 +24,17 @@ const KasirDashboard = () => {
   useEffect(() => {
     fetchOrders();
 
-    const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000');
+    const SOCKET_URL = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace('/api', '') 
+      : `http://${window.location.hostname}:5000`;
+    const socket = io(SOCKET_URL);
+
+    socket.on('connect', () => {
+      console.log('[Socket] Connected:', socket.id);
+    });
+    socket.on('connect_error', (err) => {
+      console.error('[Socket] Connection error:', err.message);
+    });
 
     socket.on('new_order', (newOrder) => {
       setOrders((prev) => [newOrder, ...prev]);

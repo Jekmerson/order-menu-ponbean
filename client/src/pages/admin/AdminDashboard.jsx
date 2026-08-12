@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { orderAPI, menuAPI, tableAPI } from '../../services/api';
 import { formatRupiah } from '../../utils/helpers';
 import { MdReceipt, MdRestaurantMenu, MdTableBar, MdTrendingUp } from 'react-icons/md';
+import { io } from 'socket.io-client';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({ orders: 0, menus: 0, tables: 0, revenue: 0 });
@@ -40,6 +41,16 @@ const AdminDashboard = () => {
       }
     };
     fetchStats();
+
+    const SOCKET_URL = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace('/api', '') 
+      : `http://${window.location.hostname}:5000`;
+    const socket = io(SOCKET_URL);
+
+    socket.on('new_order', () => fetchStats());
+    socket.on('order_updated', () => fetchStats());
+
+    return () => socket.disconnect();
   }, []);
 
   if (loading) {
