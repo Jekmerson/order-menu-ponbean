@@ -136,21 +136,20 @@ const TableManagement = () => {
     iframe.style.width = '0';
     iframe.style.height = '0';
     iframe.style.border = 'none';
-    document.body.appendChild(iframe);
+    iframe.srcdoc = htmlContent;
 
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-    doc.open();
-    doc.write(htmlContent);
-    doc.close();
-
+    let printed = false;
     iframe.onload = () => {
+      if (printed) return;
+      printed = true;
       setTimeout(() => {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
-        // Clean up after printing
         setTimeout(() => iframe.remove(), 1000);
       }, 300);
     };
+
+    document.body.appendChild(iframe);
   };
 
   // Print QR cards
