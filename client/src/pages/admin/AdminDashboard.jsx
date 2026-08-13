@@ -18,9 +18,11 @@ const AdminDashboard = () => {
           tableAPI.getAll(),
         ]);
 
+        const today = new Date().toDateString();
         const todayOrders = ordersRes.data.filter((o) => {
-          const d = new Date(o.created_at).toDateString();
-          return d === new Date().toDateString();
+          const timestamp = o.createdAt || o.created_at;
+          const d = new Date(timestamp).toDateString();
+          return d === today;
         });
 
         const todayRevenue = todayOrders

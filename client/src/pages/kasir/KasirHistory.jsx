@@ -60,7 +60,7 @@ const KasirHistory = () => {
                       {order.items?.map((i) => `${i.quantity}x ${i.menu?.nama}`).join(', ')}
                     </td>
                     <td style={{ fontWeight: 600 }}>{formatRupiah(order.total_amount)}</td>
-                    <td className="text-sm">{formatDateTime(order.created_at)}</td>
+                    <td className="text-sm">{formatDateTime(order.created_at || order.createdAt)}</td>
                     <td><span className={`badge ${status.className}`}>{status.label}</span></td>
                   </tr>
                 );
