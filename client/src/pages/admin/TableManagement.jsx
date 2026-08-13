@@ -124,21 +124,33 @@ const TableManagement = () => {
 
   // Print QR cards
   const handlePrintAll = async () => {
+    // Open window synchronously (before async call) to avoid popup blocker
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Popup diblokir oleh browser. Izinkan popup untuk mencetak QR Code.');
+      return;
+    }
+    // Show loading message while fetching data
+    printWindow.document.write('<html><head><title>QR Code - Ponbean Coffee</title></head><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;"><p>Memuat QR Code...</p></body></html>');
+    printWindow.document.close();
+
     try {
       const res = await tableAPI.getQRPrintCards('all');
       setPrintCards(res.data);
-      // Wait for state to update, then trigger print
+      // Write the actual print content
+      printWindow.document.open();
+      printWindow.document.write(generatePrintHTML(res.data));
+      printWindow.document.close();
+      // Wait for images to load before printing
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+      // Fallback: if onload doesn't fire (content already loaded), try printing after a delay
       setTimeout(() => {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(generatePrintHTML(res.data));
-          printWindow.document.close();
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        }
-      }, 100);
+        try { printWindow.print(); } catch (e) { /* already printed or window closed */ }
+      }, 1500);
     } catch (err) {
+      printWindow.close();
       toast.error('Gagal memuat data print');
     }
   };

@@ -18,11 +18,12 @@ const AdminDashboard = () => {
           tableAPI.getAll(),
         ]);
 
-        const today = new Date().toDateString();
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
         const todayOrders = ordersRes.data.filter((o) => {
-          const timestamp = o.createdAt || o.created_at;
-          const d = new Date(timestamp).toDateString();
-          return d === today;
+          const timestamp = o.created_at || o.createdAt;
+          if (!timestamp) return false;
+          const d = new Date(timestamp).toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+          return d === todayStr;
         });
 
         const todayRevenue = todayOrders

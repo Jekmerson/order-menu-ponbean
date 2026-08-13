@@ -107,6 +107,10 @@ const LaporanPenjualan = () => {
 </body></html>`);
     pw.document.close();
     pw.onload = () => pw.print();
+    // Fallback: if onload doesn't fire (content already loaded), try printing after a delay
+    setTimeout(() => {
+      try { pw.print(); } catch (e) { /* already printed or window closed */ }
+    }, 500);
   };
 
   return (
