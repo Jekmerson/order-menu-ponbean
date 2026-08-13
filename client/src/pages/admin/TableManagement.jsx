@@ -122,49 +122,54 @@ const TableManagement = () => {
     link.click();
   };
 
+  // Print via hidden iframe (no popup blocker issues)
+  const printViaIframe = (htmlContent) => {
+    // Remove existing print iframe if any
+    const existingFrame = document.getElementById('ponbean-print-frame');
+    if (existingFrame) existingFrame.remove();
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'ponbean-print-frame';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        // Clean up after printing
+        setTimeout(() => iframe.remove(), 1000);
+      }, 300);
+    };
+  };
+
   // Print QR cards
   const handlePrintAll = async () => {
-    // Open window synchronously (before async call) to avoid popup blocker
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast.error('Popup diblokir oleh browser. Izinkan popup untuk mencetak QR Code.');
-      return;
-    }
-    // Show loading message while fetching data
-    printWindow.document.write('<html><head><title>QR Code - Ponbean Coffee</title></head><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;"><p>Memuat QR Code...</p></body></html>');
-    printWindow.document.close();
-
     try {
+      toast.loading('Memuat QR Code untuk print...', { id: 'print-loading' });
       const res = await tableAPI.getQRPrintCards('all');
       setPrintCards(res.data);
-      // Write the actual print content
-      printWindow.document.open();
-      printWindow.document.write(generatePrintHTML(res.data));
-      printWindow.document.close();
-      // Wait for images to load before printing
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-      // Fallback: if onload doesn't fire (content already loaded), try printing after a delay
-      setTimeout(() => {
-        try { printWindow.print(); } catch (e) { /* already printed or window closed */ }
-      }, 1500);
+      toast.dismiss('print-loading');
+      printViaIframe(generatePrintHTML(res.data));
     } catch (err) {
-      printWindow.close();
+      toast.dismiss('print-loading');
       toast.error('Gagal memuat data print');
     }
   };
 
   // Print single QR card
   const handlePrintSingle = (qrData) => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(generatePrintHTML([qrData]));
-      printWindow.document.close();
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
+    printViaIframe(generatePrintHTML([qrData]));
   };
 
   // Generate printable HTML

@@ -55,9 +55,7 @@ const LaporanPenjualan = () => {
       </tr>
     `).join('');
 
-    const pw = window.open('', '_blank');
-    if (!pw) return;
-    pw.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>Laporan Penjualan - Ponbean Coffee</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -104,13 +102,34 @@ const LaporanPenjualan = () => {
   Dicetak pada ${new Date().toLocaleString('id-ID')}<br>
   Ponbean Coffee — Sistem Manajemen Kafe
 </div>
-</body></html>`);
-    pw.document.close();
-    pw.onload = () => pw.print();
-    // Fallback: if onload doesn't fire (content already loaded), try printing after a delay
-    setTimeout(() => {
-      try { pw.print(); } catch (e) { /* already printed or window closed */ }
-    }, 500);
+</body></html>`;
+
+    // Print via hidden iframe (no popup blocker)
+    const existingFrame = document.getElementById('ponbean-print-frame');
+    if (existingFrame) existingFrame.remove();
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'ponbean-print-frame';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => iframe.remove(), 1000);
+      }, 300);
+    };
   };
 
   return (
